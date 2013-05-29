@@ -1,0 +1,71 @@
+<html>
+  <head>
+    <title>ELAG ETL Lab</title>
+    <style type="text/css">
+      body {
+      font-family: helvetica;
+      }
+      th {
+      vertical-align: top;
+      }
+      .tag {
+      color: #0000ff;
+      }
+      .sub {
+      color: #ff0000;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header" style="height: 150;">
+      <a href="/"><img title="LibreCat" src="https://si0.twimg.com/profile_images/1673255294/TheDataTank-Icon-HighRes.png" width="128" height="128" align="left" style="margin-right: 10px;" border="0"></a>
+      <h1>ELAG ETL Lab for tdt/input</h1>
+      <p>
+      </p> 
+    </div>
+    <div style="float: right; width: 400px;">
+      <h3>Mapping to an ontology</h3>
+      Read the <a href="https://github.com/mielvds/Vertere-RDF/blob/master/documentation/README.md" target="_blank">documentation</a>.
+      <h3>Already loaded namespaces</h3>
+      <ul>
+        <li>geo:</li>
+        <li>rdf:</li>
+        <li>schema:</li>
+        <li>rdfs:</li>
+      </ul>
+    </div>
+    <form action="fix" method="POST">
+      <table style="width: 800px;">
+        <tr>
+          <td></td>
+          <td>
+            <div style="color: red"><pre></pre></div>
+          </td>
+        </tr>
+        <tr>
+          <th>Input row in<br><select name="type"><option>XML</option><option>JSON</option><option>CSV</option></select></th>
+          <td>
+            <textarea name="input" cols="100" rows="20"></textarea>
+          </td>
+        </tr>
+        <tr>
+          <th>Mapping file (<a href="https://github.com/mielvds/Vertere-RDF/blob/master/documentation/README.md" target="_blank">how to?</a>)</th>
+          <td>
+            <textarea name="fix" cols="100" rows="10"></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td><input type="submit"></td>
+        </tr>
+        <tr>
+          <th>Output<br><i>turtle</i></th>
+          <td>
+            <textarea readonly="readonly" name="output" cols="100" rows="20"></textarea>
+          </td>
+        </tr>
+      </table>
+
+    </form>
+  </body>
+</html>
