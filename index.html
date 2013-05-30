@@ -1,71 +1,92 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <title>ELAG ETL Lab</title>
-    <style type="text/css">
-      body {
-      font-family: helvetica;
-      }
-      th {
-      vertical-align: top;
-      }
-      .tag {
-      color: #0000ff;
-      }
-      .sub {
-      color: #ff0000;
-      }
-    </style>
+    <link rel="stylesheet" href="http://lib.thedatatank.com/bootstrap/css/bootstrap.min.css">  
+    <link rel="stylesheet" href="http://datatank.demo.ibbt.be/installer/static/main.css"> 
+    <script src="http://datatank.demo.ibbt.be/The-Semantifier/lib/jquery-1.7.1.min.js"></script>
   </head>
   <body>
-    <div id="header" style="height: 150;">
-      <a href="/"><img title="LibreCat" src="https://si0.twimg.com/profile_images/1673255294/TheDataTank-Icon-HighRes.png" width="128" height="128" align="left" style="margin-right: 10px;" border="0"></a>
-      <h1>ELAG ETL Lab for tdt/input</h1>
-      <p>
-      </p> 
+    <div id="masterhead" class="container">
+      <div class="row">
+	<div class="columns"><img src="http://datatank.demo.ibbt.be/installer/static/logo.png"/>
+	</div>
+      </div>
     </div>
-    <div style="float: right; width: 400px;">
-      <h3>Mapping to an ontology</h3>
-      Read the <a href="https://github.com/mielvds/Vertere-RDF/blob/master/documentation/README.md" target="_blank">documentation</a>.
-      <h3>Already loaded namespaces</h3>
-      <ul>
-        <li>geo:</li>
-        <li>rdf:</li>
-        <li>schema:</li>
-        <li>rdfs:</li>
-      </ul>
-    </div>
-    <form action="fix" method="POST">
-      <table style="width: 800px;">
-        <tr>
-          <td></td>
-          <td>
-            <div style="color: red"><pre></pre></div>
-          </td>
-        </tr>
-        <tr>
-          <th>Input row in<br><select name="type"><option>XML</option><option>JSON</option><option>CSV</option></select></th>
-          <td>
-            <textarea name="input" cols="100" rows="20"></textarea>
-          </td>
-        </tr>
-        <tr>
-          <th>Mapping file (<a href="https://github.com/mielvds/Vertere-RDF/blob/master/documentation/README.md" target="_blank">how to?</a>)</th>
-          <td>
-            <textarea name="fix" cols="100" rows="10"></textarea>
-          </td>
-        </tr>
-        <tr>
-          <td>&nbsp;</td>
-          <td><input type="submit"></td>
-        </tr>
-        <tr>
-          <th>Output<br><i>turtle</i></th>
-          <td>
-            <textarea readonly="readonly" name="output" cols="100" rows="20"></textarea>
-          </td>
-        </tr>
-      </table>
+    <div id="main">
+      <div class="container">
+        <p>Input row in<br/><select name="type"><option>CSV</option><option>JSON</option><option>XML</option></select></p>
+        <p>
+          <textarea name="input" cols="100" rows="20" style="width: 99.5%; height: 110px;" id="source">
+name;long;lat
+poi1;3.14159;51.2
+          </textarea>
+        </p>
+        <p>Mapping file (<a href="https://github.com/mielvds/Vertere-RDF/blob/master/documentation/README.md" target="_blank">how to?</a>)</p>
+        <textarea name="fix" cols="100" rows="10" style="width: 99.5%; height: 110px;" id="mapping">
+@prefix : <http://example.com/schema/data_conversion#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix dc: <http://purl.org/dc/terms/> .
+@prefix schema: <http://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix transit: <http://vocab.org/transit/terms/> .
 
-    </form>
+<#> a :Spec
+; :base_uri "http://example.com/"
+; :resource <#Poi>
+.
+
+<#Poi> a :Resource
+; :type schema:TouristAttraction
+; :identity [
+    :source_column "name";
+    ]
+
+; :attribute
+    [ :property geo:lon;      :source_column "long"  ],
+    [ :property geo:lat;      :source_column "lat"  ]
+</textarea>
+        <input type="submit" id="submit1">
+        <p>Output<br><i>turtle</i></p>
+        <textarea readonly="readonly" name="output" cols="100" rows="20" style="width: 99.5%; height: 110px;" id="result"></textarea>
+      </div>
+    </div>
+    <footer>
+      <div class="footer" align="center">
+	&copy; 2013 <a href="http://npo.irail.be" target="_blank">OKFN Belgium</a> - Powered by <a href="http://thedatatank.com" target="_blank">The DataTank</a>
+      </div>
+    </footer>
+
+    <script>
+    // some jquery magic
+
+    $("#submit1").click(function(){
+        var config = {
+            "mapping": $('#mapping').val(),
+            "extract": {
+                "type": "CSV",
+                "delimiter": ";",
+                "has_header_row": "1"
+            },
+            "chunk": $('#source').val()
+        };
+        $.ajax({
+            type: "POST",
+            url: "http://localhost/t/start/public/tdtinput/test",
+            data: JSON.stringify(config),
+            success: function(data, status){
+                $("#result").val(data);
+            },
+            error : function(data){
+                alert(data);
+            }
+        });
+    });
+ 
+    </script>
   </body>
 </html>
