@@ -76,7 +76,7 @@ poi1;3.14159;51.2
         };
         $.ajax({
             type: "POST",
-            url: "http://localhost/t/start/public/tdtinput/test",
+            url: "http://demo.thedatatank.org/tdtinput/test",
             data: JSON.stringify(config),
             success: function(data, status){
                 $("#result").val(data);
