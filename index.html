@@ -2,20 +2,29 @@
 <html lang="en">
   <head>
     <title>ELAG ETL Lab</title>
-    <link rel="stylesheet" href="http://lib.thedatatank.com/bootstrap/css/bootstrap.min.css">  
-    <link rel="stylesheet" href="http://datatank.demo.ibbt.be/installer/static/main.css"> 
+    <link rel="stylesheet" href="http://lib.thedatatank.com/bootstrap/css/bootstrap.min.css" />  
+    <link rel="stylesheet" href="http://datatank.demo.ibbt.be/installer/static/main.css" /> 
+    <link rel="stylesheet" href="lib/codemirror.css" />
     <script src="http://datatank.demo.ibbt.be/The-Semantifier/lib/jquery-1.7.1.min.js"></script>
+    <script src="lib/codemirror.js"></script>
+    <script src="mode/turtle/turtle.js"></script>
   </head>
   <body>
     <div id="masterhead" class="container">
       <div class="row">
-	<div class="columns"><img src="http://datatank.demo.ibbt.be/installer/static/logo.png"/>
-	</div>
+        <div class="columns"><img src="http://datatank.demo.ibbt.be/installer/static/logo.png"/>
+        </div>
       </div>
     </div>
     <div id="main">
       <div class="container">
-        <p>Input row in<br/><select name="type"><option>CSV</option><option>JSON</option><option>XML</option></select></p>
+        <p id="input">Input row in<br/><select id="format" name="type">
+            <option value="CSV_0">CSV with header row and ; as a delimiter</option>
+            <option value="CSV_1">CSV with header row and , as a delimiter</option>
+            <option value="CSV_2">CSV without header row and ; as a delimiter</option>
+            <option value="CSV_3">CSV without header row and , as a delimiter</option>
+            <option value="JSON">JSON</option>
+            <option value="XML">XML</option></select></p>
         <p>
           <textarea name="input" cols="100" rows="20" style="width: 99.5%; height: 110px;" id="source">
 name;long;lat
@@ -48,45 +57,110 @@ poi1;3.14159;51.2
 
 ; :attribute
     [ :property geo:lon;      :source_column "long"  ],
-    [ :property geo:lat;      :source_column "lat"  ]
-</textarea>
-        <input type="submit" id="submit1">
-        <p>Output<br><i>turtle</i></p>
-        <textarea readonly="readonly" name="output" cols="100" rows="20" style="width: 99.5%; height: 110px;" id="result"></textarea>
+    [ :property geo:lat;      :source_column "lat"  ] .
+      </textarea>
+      <div id="error" style="display:none; color:red; font-style: italic">
+        
       </div>
-    </div>
-    <footer>
-      <div class="footer" align="center">
-	&copy; 2013 <a href="http://npo.irail.be" target="_blank">OKFN Belgium</a> - Powered by <a href="http://thedatatank.com" target="_blank">The DataTank</a>
+      <input type="submit" id="submit1">
+      <p>Output<br><i>turtle</i></p>
+      <textarea readonly="readonly" name="output" cols="100" rows="20" style="width: 99.5%; height: 110px;" id="result"></textarea>
       </div>
-    </footer>
+      </div>
+      <footer>
+        <div class="footer" align="center">
+          &copy; 2013 <a href="http://npo.irail.be" target="_blank">OKFN Belgium</a> - Powered by <a href="http://thedatatank.com" target="_blank">The DataTank</a>
+        </div>
+      </footer>
 
-    <script>
-    // some jquery magic
+      <script>
+        $(function(){  
+          var editor = document.getElementById("mapping");
+          var myCodeMirror = CodeMirror.fromTextArea(editor);
 
-    $("#submit1").click(function(){
-        var config = {
-            "mapping": $('#mapping').val(),
-            "extract": {
-                "type": "CSV",
-                "delimiter": ";",
-                "has_header_row": "1"
-            },
-            "chunk": $('#source').val()
-        };
-        $.ajax({
-            type: "POST",
-            url: "http://demo.thedatatank.org/tdtinput/test",
-            data: JSON.stringify(config),
-            success: function(data, status){
+          // some jquery magic
+          $("#submit1").click(function(){
+            var extract = {};
+            switch($("#format").val()){
+              case "CSV_0":
+                extract = {
+                  "type": "CSV",
+                  "delimiter": ";",
+                  "has_header_row": "1"
+                }
+                break;
+              case "CSV_1":
+                extract = {
+                  "type": "CSV",
+                  "delimiter": ",",
+                  "has_header_row": "1"
+                }
+                break;
+              case "CSV_2":
+                extract = {
+                  "type": "CSV",
+                  "delimiter": ";",
+                  "has_header_row": "0"
+                }
+                break;  
+              case "CSV_3":
+                extract = {
+                  "type": "CSV",
+                  "delimiter": ",",
+                  "has_header_row": "0"
+                }
+                break;
+              case "JSON":
+                extract = {
+                  "type": "JSON"
+                }
+                break;
+
+              case "XML":
+                extract = {
+                  "type": "XML"
+                }
+                break;
+              default:
+
+            }           
+            
+            //validation URI: http://www.rdfabout.com/demo/validator/validate.xpd
+            //POST {format: "n3", content: "" }
+            /*var validation_config = {format: "n3", content: myCodeMirror.getValue() };
+
+            $.ajax({
+              type: "POST",
+              url: "http://www.rdfabout.com/demo/validator/validate.xpd",
+              data: validation_config,
+              success: function(data, status){
+                $("#error").html(data);
+              },
+              error : function(data){
+                $("#error").html(data);
+              }
+            });*/
+                 
+            var config = {
+              "mapping": myCodeMirror.getValue(),
+              "extract": extract,
+              "chunk": $('#source').val()
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://demo.thedatatank.org/tdtinput/test",
+              data: JSON.stringify(config),
+              success: function(data, status){
+                $("#error").hide();
                 $("#result").val(data);
-            },
-            error : function(data){
-                alert(data);
-            }
+              },
+              error : function(data){
+                $("#error").html(data || "An error occurred in the mapping. Please check your mapping file for errors.").show();
+              }
+            });
+            
+          });
         });
-    });
- 
-    </script>
-  </body>
+   </script>
+ </body>
 </html>
